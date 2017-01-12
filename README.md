@@ -51,3 +51,66 @@ make -f Makefile.win64
 mvn install
 ```
 
+## Building it on mac
+
+### Prerequisites:
+
+* g++ need to be installed, check with `g++ -version`
+* automake, autoconf and libtool need to be installed:
+
+```
+brew install libtool autoconf automake
+```
+
+### Building protobuf
+
+```
+cd build
+./build-linux.sh
+cd ..
+ls -la lib/linux/
+```
+
+You should have something like:
+
+```
+drwxr-xr-x  6 clement  staff       204 Jan 12 13:58 .
+drwxr-xr-x  3 clement  staff       102 Jan 12 13:58 ..
+-rw-r--r--  1 clement  staff  10008648 Jan 12 13:58 libprotobuf.a
+-rw-r--r--  1 clement  staff       956 Jan 12 13:58 libprotobuf.la
+-rw-r--r--  1 clement  staff   8949624 Jan 12 13:58 libprotoc.a
+-rw-r--r--  1 clement  staff      1046 Jan 12 13:58 libprotoc.la
+```
+
+### Building the plugin
+
+Edit the `Makefile` and change the first section to:
+
+```
+protoc-gen-grpc-java-osx-x86_64.exe: java_generator.o java_plugin.o
+	g++ -o protoc-gen-grpc-java-osx-x86_64.exe java_plugin.o java_generator.o -lpthread lib/linux/libprotoc.a lib/linux/libprotobuf.a -m64 -s
+	mkdir -p bin
+	cp protoc-gen-grpc-java-osx-x86_64.exe bin
+```
+
+Then, issue:
+
+```
+make clean; make
+```
+
+### Installing the dependency to the local maven repo
+
+```
+mvn install:install-file \
+    -Dfile=bin/protoc-gen-grpc-java-osx-x86_64.exe \
+    -DgroupId=io.vertx \
+    -DartifactId=protoc-gen-grpc-java \
+    -Dversion=1.0.3 \
+    -Dclassifier=osx-x86_64 \
+    -Dpackaging=exe
+```
+
+
+
+
